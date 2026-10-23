@@ -25,5 +25,5 @@ export async function middleware(request: NextRequest) {
 // the /login page itself, and the /api/login + /api/auth/google endpoints
 // (which are how you get a session cookie in the first place).
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|login|api/login|api/auth/google).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons/|login|api/login|api/auth/google).*)"],
 };

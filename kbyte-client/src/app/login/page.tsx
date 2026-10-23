@@ -127,7 +127,7 @@ export default function LoginPage() {
             onChange={(e) => setRemember(e.target.checked)}
             className="h-4 w-4 rounded border-[#1e1e1e] bg-[#0a0a0a] accent-emerald-500"
           />
-          Keep me logged in for 30 days
+          Beni hatırla (1 yıl)
         </label>
 
         {error && <p className="text-xs text-red-400 mb-4">{error}</p>}

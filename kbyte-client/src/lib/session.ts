@@ -4,7 +4,7 @@
 
 const SESSION_COOKIE_NAME = "kbyte_session";
 const SHORT_SESSION_SECONDS = 60 * 60 * 24; // 1 day (default, box unchecked)
-const LONG_SESSION_SECONDS = 60 * 60 * 24 * 30; // 30 days ("keep me logged in")
+const LONG_SESSION_SECONDS = 60 * 60 * 24 * 365; // 1 year ("keep me logged in"), so the home-screen app stays signed in
 
 export const SESSION_COOKIE = SESSION_COOKIE_NAME;
 
