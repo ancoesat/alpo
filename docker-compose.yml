@@ -1,0 +1,78 @@
+# Separate stack from the main KBYTE: own project name, containers, volumes and ports,
+# so both can run on the same server side by side.
+name: alpo
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: alpo_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_DATABASE: kbyte_db
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    # No host port: only the API talks to the DB, over the internal network.
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - kbyte_network
+
+  kbyte-api:
+    build:
+      context: ./KBYTE
+      dockerfile: Dockerfile
+    container_name: alpo_backend
+    restart: always
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5126
+      ConnectionStrings__DefaultConnection: "Server=mysql-db;Port=3306;Database=kbyte_db;User=root;Password=${DB_PASSWORD:?DB_PASSWORD is required};"
+      Cors__AllowedOrigins__0: ${PUBLIC_URL:?PUBLIC_URL is required}
+      ApiKey: ${API_KEY?APIKEY is required}
+    # No host port: the client reaches it at http://kbyte-api:5126 inside Docker.
+    networks:
+      - kbyte_network
+
+  kbyte-client:
+    build:
+      context: ./kbyte-client
+      dockerfile: Dockerfile
+    container_name: alpo_frontend
+    restart: always
+    depends_on:
+      - kbyte-api
+    environment:
+      # Server-side only (no NEXT_PUBLIC_ prefix) -> never shipped to the browser.
+      API_URL: http://kbyte-api:5126
+      API_KEY: ${API_KEY:?API_KEY is required}
+      # First password. Once changed from the desktop, the new hash lives in client_data.
+      SITE_PASSWORD: ${SITE_PASSWORD:?SITE_PASSWORD is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL is required}
+      # Optional Google sign-in. Leave empty to use the password only.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_ALLOWED_EMAIL: ${GOOGLE_ALLOWED_EMAIL:-}
+      DATA_DIR: /app/data
+    ports:
+      - "3002:3000"
+    volumes:
+      - client_data:/app/data
+    networks:
+      - kbyte_network
+
+networks:
+  kbyte_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  client_data:

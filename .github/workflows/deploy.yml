@@ -1,0 +1,34 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sunucuya bağlan ve konteynerleri güncelle
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            eval $(ssh-agent -s)
+            ssh-add ~/.ssh/github_rsa
+            if [ ! -d "/var/www/alpo/.git" ]; then
+              git clone git@github.com:barzoman21/alpo.git /var/www/alpo
+            fi
+            cd /var/www/alpo
+            if git remote get-url origin >/dev/null 2>&1; then
+              git remote set-url origin git@github.com:barzoman21/alpo.git
+            else
+              git remote add origin git@github.com:barzoman21/alpo.git
+            fi
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
+            docker compose down
+            docker compose up --build -d --remove-orphans --force-recreate
