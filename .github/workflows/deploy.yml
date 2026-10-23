@@ -17,15 +17,15 @@ jobs:
           script: |
             set -e
             eval $(ssh-agent -s)
-            ssh-add ~/.ssh/github_rsa
+            ssh-add ~/.ssh/alpo_github
             if [ ! -d "/var/www/alpo/.git" ]; then
-              git clone git@github.com:barzoman21/alpo.git /var/www/alpo
+              git clone git@github.com:ancoesat/alpo.git /var/www/alpo
             fi
             cd /var/www/alpo
             if git remote get-url origin >/dev/null 2>&1; then
-              git remote set-url origin git@github.com:barzoman21/alpo.git
+              git remote set-url origin git@github.com:ancoesat/alpo.git
             else
-              git remote add origin git@github.com:barzoman21/alpo.git
+              git remote add origin git@github.com:ancoesat/alpo.git
             fi
             git fetch origin
             git checkout main
