@@ -63,7 +63,7 @@ services:
       GOOGLE_ALLOWED_EMAIL: ${GOOGLE_ALLOWED_EMAIL:-}
       DATA_DIR: /app/data
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000" # only nginx on this host reaches it
     volumes:
       - client_data:/app/data
     networks:
